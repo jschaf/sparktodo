@@ -1,0 +1,16 @@
+group 'com.delta46'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.sparkjava:spark-core:2.3'
+    testCompile 'junit:junit:4.11'
+}
