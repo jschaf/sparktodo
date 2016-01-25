@@ -1,9 +1,19 @@
+
+plugins {
+    id 'application'
+    id 'base'
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '1.2.2'
+}
+
 group 'com.delta46'
 version '1.0-SNAPSHOT'
 
-apply plugin: 'java'
 
-sourceCompatibility = 1.8
+project.sourceCompatibility = 1.8
+project.targetCompatibility = 1.8
+
+mainClassName = "com.delta46.sparktodo.TodoApp"
 
 repositories {
     mavenLocal()
@@ -13,4 +23,16 @@ repositories {
 dependencies {
     compile 'com.sparkjava:spark-core:2.3'
     testCompile 'junit:junit:4.11'
+}
+
+shadowJar {
+    mergeServiceFiles()
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+}
+
+
+task stage {
+    dependsOn build
+    dependsOn shadowJar
 }
