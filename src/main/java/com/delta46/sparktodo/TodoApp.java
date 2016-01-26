@@ -1,5 +1,9 @@
 package com.delta46.sparktodo;
 
+import spark.Filter;
+import spark.Request;
+import spark.Response;
+
 import static spark.Spark.*;
 
 public class TodoApp {
@@ -16,14 +20,24 @@ public class TodoApp {
         }
     }
 
+    private static void enableCORS(final String origin, final String methods, final String headers) {
+        before((request, response) -> {
+            response.header("Access-Control-Allow-Origin", origin);
+            response.header("Access-Control-Request-Method", methods);
+            response.header("Access-Control-Allow-Headers", headers);
+        });
+}
+
     public static void main(String[] args) {
 
         port(getPortNumber());
 
-        get("/hello", (req, res) -> "Hello World");
+        enableCORS("*", "*", "*");
 
-        get("/hello/:name", (request, response) ->
-                "hello: " + request.params(":name"));
+        get("/todo", (req, res) -> "Hello World");
+
+        get("/todo/:id", (request, response) ->
+                "hello: " + request.params(":id"));
 
 
     }
