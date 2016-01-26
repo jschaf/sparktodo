@@ -1,29 +1,165 @@
+import groovy.xml.MarkupBuilder
+import org.jooq.util.GenerationTool
+
+import javax.xml.bind.JAXB
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        classpath "com.h2database:h2:1.4.190"
+        classpath 'org.flywaydb:flyway-gradle-plugin:3.2.1'
+        classpath 'org.jooq:jooq-codegen:3.7.2'
+    }
+}
 
 plugins {
     id 'application'
     id 'base'
     id 'java'
     id 'com.github.johnrengelman.shadow' version '1.2.2'
+    id 'org.flywaydb.flyway' version '3.2.1'
 }
 
-group 'com.delta46'
+group 'us.delta46'
 version '1.0-SNAPSHOT'
 
+project.ext {
+    configPath = "$rootProject.projectDir/"
+    configFile = configPath + 'todo-config.yml'
+    dbUrl = "jdbc:h2:~/spark-todo-db"
+    dbUsername = "sa"
+    dbPassword = "sa"
+    h2Version = '1.4.190'
+    jooqVersion = '3.7.2'
+}
 
 project.sourceCompatibility = 1.8
 project.targetCompatibility = 1.8
 
-mainClassName = "com.delta46.sparktodo.TodoApp"
 
-repositories {
-    mavenLocal()
-    mavenCentral()
+// See: http://www.notsocomplex.com/2015/04/mrforms/how-to-run-integration-tests-with-gradle/
+sourceSets {
+    main {
+        java.srcDir 'src/generated/java'
+    }
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integrationTest/java')
+        }
+        resources.srcDir('src/integrationTest/resources')
+    }
+}
+
+mainClassName = "us.delta46.sparktodo.TodoApp"
+
+allprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
 }
 
 dependencies {
-    compile 'com.sparkjava:spark-core:2.3'
+    compile (
+            'com.google.guava:guava:19.0',
+            'com.google.code.gson:gson:2.5',
+            'com.sparkjava:spark-core:2.3',
+            'org.apache.commons:commons-dbcp2:2.1.1',
+            'org.projectlombok:lombok:1.16.6',
+
+            'io.dropwizard.modules:dropwizard-flyway:0.9.0-1',
+
+
+            // Needed for annotation in jOOQ generated code
+            'javax.persistence:persistence-api:1.0.2',
+            "org.jooq:jooq:$jooqVersion"
+    )
+
     testCompile 'junit:junit:4.11'
+
+    runtime (
+            "com.h2database:h2:$h2Version",
+    )
 }
+
+flyway {
+    url dbUrl
+    user = dbUsername
+    password = dbPassword
+}
+
+
+// https://github.com/flyway/flyway/issues/775
+// Flyway needs to support Java migrations, so it depends on testClasses.
+// That results in a circular dependency for jOOQ because we need migrations
+// to run, then jOOQ code-gen and then compileJava
+project.afterEvaluate {
+    flywayClean.dependsOn -= testClasses
+    flywayMigrate.dependsOn = [processResources, processTestResources]
+}
+
+task generateJooqCode {
+//    description = 'Generate Java API for the database.'
+    doLast {
+        // https://github.com/jOOQ/jOOQ/tree/master/jOOQ-examples/jOOQ-codegen-gradle
+        def writer = new StringWriter()
+        def xml = new MarkupBuilder(writer)
+                .configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.7.0.xsd') {
+            jdbc() {
+                driver('org.h2.Driver')
+                url(dbUrl)
+                user(dbUsername)
+                password(dbPassword)
+            }
+            generator() {
+                database() {
+                    inputSchema('TODO')
+                }
+
+                // Watch out for this caveat when using MarkupBuilder with "reserved names"
+                // - https://github.com/jOOQ/jOOQ/issues/4797
+                // - http://stackoverflow.com/a/11389034/521799
+                // - https://groups.google.com/forum/#!topic/jooq-user/wi4S9rRxk4A
+                generate([:]) {
+                    pojos false
+                    immutablePojos false
+                    daos false
+                    fluentSetters true
+                    validationAnnotations true
+                    jpaAnnotations true
+                    globalObjectReferences true
+                }
+                target() {
+                    packageName('us.delta46.sparktodo.models')
+                    directory("src/generated/java")
+                }
+            }
+        }
+
+        // Run the code generator
+        GenerationTool.generate(
+                JAXB.unmarshal(new StringReader(writer.toString()),
+                        org.jooq.util.jaxb.Configuration.class)
+        )
+    }
+}
+
+generateJooqCode.dependsOn flywayMigrate
+
+clean {
+    delete "src/generated"
+}
+
+compileJava.dependsOn generateJooqCode
+
 
 shadowJar {
     mergeServiceFiles()
