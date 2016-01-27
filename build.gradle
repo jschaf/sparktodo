@@ -31,9 +31,6 @@ version '1.0-SNAPSHOT'
 project.ext {
     configPath = "$rootProject.projectDir/"
     configFile = configPath + 'todo-config.yml'
-    dbUrl = "jdbc:h2:~/spark-todo-db"
-    dbUsername = "sa"
-    dbPassword = "sa"
     h2Version = '1.4.190'
     jooqVersion = '3.7.2'
 }
