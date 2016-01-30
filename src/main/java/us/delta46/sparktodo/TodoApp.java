@@ -41,14 +41,14 @@ public class TodoApp {
     private static DataSource buildDataSource() {
         final BasicDataSource ds = new BasicDataSource();
         ds.setDriverClassName("org.postgresql.Driver");
-        String dbUrl = Optional.ofNullable(System.getenv("JDBC_DATABASE_URL"))
-                .orElse("jdbc:postgresql://localhost:5432/todo-db?user=joe&password=password");
+        String dbUrl = "jdbc:postgresql://ec2-54-83-205-164.compute-1.amazonaws.com:5432/dd53cj9okjlgf3?user=dfhnvuxyfygpuy&password=m1Nm0F1PlC-0bpL4dZp8s2MOxM&sslmode=require";
+//                .orElse("jdbc:postgresql://localhost:5432/todo-db?user=joe&password=password");
         ds.setUrl(dbUrl);
         return ds;
     }
 
     private static DSLContext buildDSLContext() {
-        return DSL.using(buildDataSource(), SQLDialect.POSTGRES_9_5);
+        return DSL.using(buildDataSource(), SQLDialect.POSTGRES_9_4);
     }
 
     private static void populateDbWithFakeData(DSLContext db) {

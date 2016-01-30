@@ -34,7 +34,7 @@ project.ext {
 //    h2Version = '1.4.190'
     jooqVersion = '3.7.2'
 
-    dbUrl = System.getenv("JDBC_DATABASE_URL") ?: "jdbc:postgresql://localhost:5432/todo-db?user=joe&password=password"
+    dbUrl = "jdbc:postgresql://ec2-54-83-205-164.compute-1.amazonaws.com:5432/dd53cj9okjlgf3?user=dfhnvuxyfygpuy&password=m1Nm0F1PlC-0bpL4dZp8s2MOxM&sslmode=require"
 //    dbUsername=joe
 //    dbPassword=password
 }
