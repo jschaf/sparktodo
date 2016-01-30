@@ -11,7 +11,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "com.h2database:h2:1.4.190"
+        classpath 'org.postgresql:postgresql:9.4.1207'
         classpath 'org.flywaydb:flyway-gradle-plugin:3.2.1'
         classpath 'org.jooq:jooq-codegen:3.7.2'
     }
@@ -31,8 +31,12 @@ version '1.0-SNAPSHOT'
 project.ext {
     configPath = "$rootProject.projectDir/"
     configFile = configPath + 'todo-config.yml'
-    h2Version = '1.4.190'
+//    h2Version = '1.4.190'
     jooqVersion = '3.7.2'
+
+    dbUrl = System.getenv("JDBC_DATABASE_URL") ?: "jdbc:postgresql://localhost:5432/todo-db?user=joe&password=password"
+//    dbUsername=joe
+//    dbPassword=password
 }
 
 project.sourceCompatibility = 1.8
@@ -83,14 +87,13 @@ dependencies {
     testCompile 'junit:junit:4.11'
 
     runtime (
-            "com.h2database:h2:$h2Version",
+//            "com.h2database:h2:$h2Version",
+            'org.postgresql:postgresql:9.4.1207'
     )
 }
 
 flyway {
     url dbUrl
-    user = dbUsername
-    password = dbPassword
 }
 
 
@@ -111,14 +114,12 @@ task generateJooqCode {
         def xml = new MarkupBuilder(writer)
                 .configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.7.0.xsd') {
             jdbc() {
-                driver('org.h2.Driver')
+                driver('org.postgresql.Driver')
                 url(dbUrl)
-                user(dbUsername)
-                password(dbPassword)
             }
             generator() {
                 database() {
-                    inputSchema('TODO')
+                    inputSchema('todo_backend')
                 }
 
                 // Watch out for this caveat when using MarkupBuilder with "reserved names"
@@ -152,7 +153,9 @@ task generateJooqCode {
 generateJooqCode.dependsOn flywayMigrate
 
 clean {
-    delete "src/generated"
+      // Maybe keep the code around so the project can still build.
+      // Everything stops if you can't build the java code.
+      // delete "src/generated"
 }
 
 compileJava.dependsOn generateJooqCode

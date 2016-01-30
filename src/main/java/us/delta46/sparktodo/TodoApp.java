@@ -12,6 +12,9 @@ import static us.delta46.sparktodo.models.Tables.*;
 
 import javax.sql.DataSource;
 
+import java.util.Optional;
+import java.util.logging.LogManager;
+
 import static spark.Spark.*;
 import static us.delta46.sparktodo.transformers.JsonTransformer.json;
 
@@ -20,14 +23,12 @@ public class TodoApp {
     public static final int DEFAULT_PORT = 4567;
 
     private static int getPortNumber() {
-        String portString = System.getenv("PORT");
-        if (portString == null) {
-            return DEFAULT_PORT;
-        } else {
-            int port = Integer.parseInt(portString);
-            return port;
-        }
+        int port = Optional.ofNullable(System.getenv("PORT"))
+                .map(Integer::parseInt)
+                .orElse(DEFAULT_PORT);
+        return port;
     }
+
 
     private static void enableCORS(final String origin, final String methods, final String headers) {
         before((request, response) -> {
@@ -39,15 +40,15 @@ public class TodoApp {
 
     private static DataSource buildDataSource() {
         final BasicDataSource ds = new BasicDataSource();
-        ds.setDriverClassName("org.h2.Driver");
-        ds.setUrl("jdbc:h2:~/spark-todo-db");
-        ds.setUsername("sa");
-        ds.setPassword("sa");
+        ds.setDriverClassName("org.postgresql.Driver");
+        String dbUrl = Optional.ofNullable(System.getenv("JDBC_DATABASE_URL"))
+                .orElse("jdbc:postgresql://localhost:5432/todo-db?user=joe&password=password");
+        ds.setUrl(dbUrl);
         return ds;
     }
 
     private static DSLContext buildDSLContext() {
-        return DSL.using(buildDataSource(), SQLDialect.H2);
+        return DSL.using(buildDataSource(), SQLDialect.POSTGRES_9_5);
     }
 
     private static void populateDbWithFakeData(DSLContext db) {
