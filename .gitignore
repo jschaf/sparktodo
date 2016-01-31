@@ -12,3 +12,6 @@
 ## Directory-based project format:
 .idea/
 
+## jOOQ generated files
+src/generated/
+
