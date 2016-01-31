@@ -92,15 +92,13 @@ dependencies {
     testCompile 'junit:junit:4.11'
 
     runtime (
-//            "com.h2database:h2:$h2Version",
             'org.postgresql:postgresql:9.4.1207'
     )
 }
 
 flyway {
-    url = dbUrl
+     url = dbUrl
 }
-
 
 // https://github.com/flyway/flyway/issues/775
 // Flyway needs to support Java migrations, so it depends on testClasses.

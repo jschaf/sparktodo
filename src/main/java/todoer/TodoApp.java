@@ -1,6 +1,7 @@
 package todoer;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.flywaydb.core.Flyway;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
@@ -68,6 +69,13 @@ public class TodoApp {
         return ds;
     }
 
+    private static void runFlywayMigrations() {
+        Flyway flyway = new Flyway();
+        flyway.setDataSource(buildDataSource());
+        flyway.repair();
+        flyway.migrate();
+    }
+
     private static DSLContext buildDSLContext() {
         return DSL.using(buildDataSource(), SQLDialect.POSTGRES_9_4);
     }
@@ -83,6 +91,8 @@ public class TodoApp {
     }
 
     public static void main(String[] args) {
+
+        runFlywayMigrations();
 
         DSLContext db = buildDSLContext();
         populateDbWithFakeData(db);
