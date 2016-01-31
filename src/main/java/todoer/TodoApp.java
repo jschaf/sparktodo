@@ -5,6 +5,8 @@ import org.flywaydb.core.Flyway;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import todoer.api.TodoEntry;
 import todoer.repos.AllTodos;
 import todoer.transformers.JsonTransformer;
@@ -21,6 +23,8 @@ import static todoer.models.tables.Todo.*;
 class TodoApp {
 
     private static final int DEFAULT_PORT = 4567;
+
+    private static final Logger LOG = LoggerFactory.getLogger(TodoApp.class);
 
     private static int getPortNumber() {
         return Optional.ofNullable(System.getenv("PORT"))
@@ -60,12 +64,23 @@ class TodoApp {
     private static DataSource buildDataSource() {
         final BasicDataSource ds = new BasicDataSource();
         ds.setDriverClassName("org.postgresql.Driver");
-        String dbUrl = Optional.ofNullable(System.getenv("JDBC_DATABASE_URL"))
-                .orElse(Optional.ofNullable(System.getenv("JDBC_TODO_DEV_URL"))
-                        .orElseThrow(() -> new RuntimeException("No matching environmental variables for "
-                        + "JDBC_DATABASE_URL or JDBC_TODO_DEV_URL")));
-        ds.setUrl(dbUrl);
-        return ds;
+
+        String jdbcUrl = System.getenv("JDBC_DATABASE_URL");
+        LOG.info("JDBC_DATABASE_URL is " + jdbcUrl);
+        if (jdbcUrl != null) {
+            ds.setUrl(jdbcUrl);
+            return ds;
+        }
+
+        String devUrl = System.getenv("JDBC_TODO_DEV_URL");
+        LOG.info("JDBC_TODO_DEV_URL is " + devUrl);
+
+        if (devUrl == null) {
+            throw new RuntimeException("No matching environmental variables for JDBC_DATABASE_URL or JDBC_TODO_DEV_URL");
+        } else {
+            ds.setUrl(devUrl);
+            return ds;
+        }
     }
 
     private static void runFlywayMigrations() {
