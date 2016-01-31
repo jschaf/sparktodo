@@ -1,22 +1,21 @@
-package us.delta46.sparktodo;
+package todoer;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
-import spark.Filter;
-import spark.Request;
-import spark.Response;
-import us.delta46.sparktodo.repos.AllTodos;
-import static us.delta46.sparktodo.models.Tables.*;
+import todoer.api.TodoEntry;
+import todoer.repos.AllTodos;
+import todoer.transformers.JsonTransformer;
 
 import javax.sql.DataSource;
+import javax.ws.rs.NotFoundException;
 
 import java.util.Optional;
-import java.util.logging.LogManager;
 
 import static spark.Spark.*;
-import static us.delta46.sparktodo.transformers.JsonTransformer.json;
+import static todoer.transformers.JsonTransformer.json;
+import static todoer.models.tables.Todo.*;
 
 public class TodoApp {
 
@@ -61,8 +60,8 @@ public class TodoApp {
     private static DataSource buildDataSource() {
         final BasicDataSource ds = new BasicDataSource();
         ds.setDriverClassName("org.postgresql.Driver");
-        String dbUrl = "jdbc:postgresql://ec2-54-83-205-164.compute-1.amazonaws.com:5432/dd53cj9okjlgf3?user=dfhnvuxyfygpuy&password=m1Nm0F1PlC-0bpL4dZp8s2MOxM&sslmode=require";
-//                .orElse("jdbc:postgresql://localhost:5432/todo-db?user=joe&password=password");
+        String dbUrl = Optional.ofNullable(System.getenv("JDBC_DATABASE_URL"))
+                .orElse("jdbc:postgresql://localhost:5432/todo-db?user=joe&password=password");
         ds.setUrl(dbUrl);
         return ds;
     }
@@ -78,6 +77,7 @@ public class TodoApp {
                 .values(3, "Note 3", true, 100)
                 .onDuplicateKeyIgnore()
                 .execute();
+
     }
 
     public static void main(String[] args) {
@@ -91,12 +91,20 @@ public class TodoApp {
 
         enableCORS("*", "*", "*");
 
-        get("/todo", (request, response) -> allTodos.list(), json());
-        after((req, res) -> res.type("application/json"));
+        get("/todo", (request, response) -> allTodos.getAll(), json());
+        after((request, response) -> response.type("application/json"));
 
-        get("/todo/:id", (request, response) ->
-                "hello: " + request.params(":id"));
+        get("/todo/:id",
+                (request, response) -> {
+                    Optional<TodoEntry> todo = allTodos.getById(Integer.parseInt(request.params(":id")));
+                    return todo.orElseThrow(NotFoundException::new);
+                },
+                JsonTransformer::toJson);
 
+        exception(NotFoundException.class ,(e, request, response) -> {
+            response.status(404);
+            response.body("Resource not found");
+        });
 
     }
 }

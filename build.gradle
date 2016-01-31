@@ -25,7 +25,7 @@ plugins {
     id 'org.flywaydb.flyway' version '3.2.1'
 }
 
-group 'us.delta46'
+group 'todoer'
 version '1.0-SNAPSHOT'
 
 project.ext {
@@ -58,7 +58,7 @@ sourceSets {
     }
 }
 
-mainClassName = "us.delta46.sparktodo.TodoApp"
+mainClassName = "todoer.TodoApp"
 
 allprojects {
     repositories {
@@ -136,7 +136,7 @@ task generateJooqCode {
                     globalObjectReferences true
                 }
                 target() {
-                    packageName('us.delta46.sparktodo.models')
+                    packageName('todoer.models')
                     directory("src/generated/java")
                 }
             }

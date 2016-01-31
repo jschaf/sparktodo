@@ -1,4 +1,4 @@
-package us.delta46.sparktodo.api;
+package todoer.api;
 
 import lombok.Value;
 
