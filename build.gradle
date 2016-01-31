@@ -63,6 +63,7 @@ sourceSets {
     }
 }
 
+//noinspection GroovyUnusedAssignment
 mainClassName = "todoer.TodoApp"
 
 allprojects {
@@ -79,13 +80,11 @@ dependencies {
             'com.google.code.gson:gson:2.5',
             'com.sparkjava:spark-core:2.3',
             'org.apache.commons:commons-dbcp2:2.1.1',
+            'org.flywaydb:flyway-core:3.2.1',
             'org.projectlombok:lombok:1.16.6',
-
-            'io.dropwizard.modules:dropwizard-flyway:0.9.0-1',
-
-
-            // Needed for annotation in jOOQ generated code
             'javax.persistence:persistence-api:1.0.2',
+            'javax.validation:validation-api:1.1.0.Final',
+            'javax.ws.rs:javax.ws.rs-api:2.0.1',
             "org.jooq:jooq:$jooqVersion"
     )
 
@@ -109,13 +108,14 @@ project.afterEvaluate {
     flywayMigrate.dependsOn = [processResources, processTestResources]
 }
 
+
 task generateJooqCode {
 //    description = 'Generate Java API for the database.'
     doLast {
         // https://github.com/jOOQ/jOOQ/tree/master/jOOQ-examples/jOOQ-codegen-gradle
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)
-                .configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.7.0.xsd') {
+        xml.configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.7.0.xsd') {
             jdbc() {
                 driver('org.postgresql.Driver')
                 url(dbUrl)
@@ -154,12 +154,6 @@ task generateJooqCode {
 }
 
 generateJooqCode.dependsOn flywayMigrate
-
-clean {
-      // Maybe keep the code around so the project can still build.
-      // Everything stops if you can't build the java code.
-      // delete "src/generated"
-}
 
 compileJava.dependsOn generateJooqCode
 

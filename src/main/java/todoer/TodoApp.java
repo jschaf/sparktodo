@@ -18,19 +18,18 @@ import static spark.Spark.*;
 import static todoer.transformers.JsonTransformer.json;
 import static todoer.models.tables.Todo.*;
 
-public class TodoApp {
+class TodoApp {
 
-    public static final int DEFAULT_PORT = 4567;
+    private static final int DEFAULT_PORT = 4567;
 
     private static int getPortNumber() {
-        int port = Optional.ofNullable(System.getenv("PORT"))
+        return Optional.ofNullable(System.getenv("PORT"))
                 .map(Integer::parseInt)
                 .orElse(DEFAULT_PORT);
-        return port;
     }
 
 
-    private static void enableCORS(final String origin, final String methods, final String headers) {
+    private static void enableCORS() {
         options("/*",
                 (request, response) -> {
 
@@ -52,9 +51,9 @@ public class TodoApp {
                 });
 
         before((request, response) -> {
-            response.header("Access-Control-Allow-Origin", origin);
-            response.header("Access-Control-Request-Method", methods);
-            response.header("Access-Control-Allow-Headers", headers);
+            response.header("Access-Control-Allow-Origin", "*");
+            response.header("Access-Control-Request-Method", "*");
+            response.header("Access-Control-Allow-Headers", "*");
         });
     }
 
@@ -101,7 +100,7 @@ public class TodoApp {
 
         port(getPortNumber());
 
-        enableCORS("*", "*", "*");
+        enableCORS();
 
         get("/todo", (request, response) -> allTodos.getAll(), json());
         after((request, response) -> response.type("application/json"));
