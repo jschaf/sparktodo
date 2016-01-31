@@ -61,7 +61,9 @@ public class TodoApp {
         final BasicDataSource ds = new BasicDataSource();
         ds.setDriverClassName("org.postgresql.Driver");
         String dbUrl = Optional.ofNullable(System.getenv("JDBC_DATABASE_URL"))
-                .orElse("jdbc:postgresql://localhost:5432/todo-db?user=joe&password=password");
+                .orElse(Optional.ofNullable(System.getenv("JDBC_TODO_DEV_URL"))
+                        .orElseThrow(() -> new RuntimeException("No matching environmental variables for "
+                        + "JDBC_DATABASE_URL or JDBC_TODO_DEV_URL")));
         ds.setUrl(dbUrl);
         return ds;
     }

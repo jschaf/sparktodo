@@ -28,15 +28,20 @@ plugins {
 group 'todoer'
 version '1.0-SNAPSHOT'
 
+String getDbUrl() {
+    String databaseUrl = System.getenv("JDBC_DATABASE_URL") ?: System.getenv("JDBC_TODO_DEV_URL")
+    if (databaseUrl == null) {
+        throw new RuntimeException("No matching environmental variables for "
+                        + "JDBC_DATABASE_URL or JDBC_TODO_DEV_URL");
+    }
+    return databaseUrl;
+}
+
 project.ext {
     configPath = "$rootProject.projectDir/"
     configFile = configPath + 'todo-config.yml'
-//    h2Version = '1.4.190'
     jooqVersion = '3.7.2'
-
-    dbUrl = "jdbc:postgresql://ec2-54-83-205-164.compute-1.amazonaws.com:5432/dd53cj9okjlgf3?user=dfhnvuxyfygpuy&password=m1Nm0F1PlC-0bpL4dZp8s2MOxM&sslmode=require"
-//    dbUsername=joe
-//    dbPassword=password
+    dbUrl = getDbUrl()
 }
 
 project.sourceCompatibility = 1.8
@@ -93,7 +98,7 @@ dependencies {
 }
 
 flyway {
-    url dbUrl
+    url = dbUrl
 }
 
 
