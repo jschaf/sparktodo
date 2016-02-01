@@ -162,7 +162,8 @@ shadowJar {
     exclude 'META-INF/*.RSA'
 }
 
+// Don't run tests on stage, because integration tests will wipe
+// the database.
 task stage {
-    dependsOn build
     dependsOn shadowJar
 }
