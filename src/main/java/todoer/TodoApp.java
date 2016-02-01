@@ -32,7 +32,6 @@ class TodoApp {
                 .orElse(DEFAULT_PORT);
     }
 
-
     private static void enableCORS() {
         options("/*",
                 (request, response) -> {

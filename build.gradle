@@ -19,10 +19,11 @@ buildscript {
 
 plugins {
     id 'application'
-    id 'base'
+    id 'idea'
     id 'java'
     id 'com.github.johnrengelman.shadow' version '1.2.3'
-    id "com.github.ben-manes.versions" version "0.12.0"
+    id "com.github.ben-manes.versions" version '0.12.0'
+    id 'org.unbroken-dome.test-sets' version '1.2.0'
 }
 
 group 'todoer'
@@ -40,27 +41,14 @@ String getDbUrl() {
 project.ext {
     configPath = "$rootProject.projectDir/"
     configFile = configPath + 'todo-config.yml'
-    jooqVersion = '3.7.2'
     dbUrl = getDbUrl()
 }
 
 project.sourceCompatibility = 1.8
 project.targetCompatibility = 1.8
 
-
-// See: http://www.notsocomplex.com/2015/04/mrforms/how-to-run-integration-tests-with-gradle/
 sourceSets {
-    main {
-        java.srcDir 'src/generated/java'
-    }
-    integrationTest {
-        java {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
-            srcDir file('src/integrationTest/java')
-        }
-        resources.srcDir('src/integrationTest/resources')
-    }
+        main.java.srcDir 'src/generated/java'
 }
 
 //noinspection GroovyUnusedAssignment
@@ -74,6 +62,10 @@ allprojects {
     }
 }
 
+testSets {
+    integrationTest
+}
+
 dependencies {
     compile (
             'com.google.guava:guava:19.0',
@@ -85,11 +77,18 @@ dependencies {
             'javax.persistence:persistence-api:1.0.2',
             'javax.validation:validation-api:1.1.0.Final',
             'javax.ws.rs:javax.ws.rs-api:2.0.1',
-            "org.jooq:jooq:$jooqVersion",
+            "org.jooq:jooq:3.7.2",
             'org.slf4j:slf4j-simple:1.7.14'
     )
 
-    testCompile 'junit:junit:4.12'
+    testCompile (
+            'junit:junit:4.12'
+    )
+
+    integrationTestCompile (
+            'info.cukes:cucumber-java:1.2.4',
+            'info.cukes:cucumber-junit:1.2.4'
+    )
 
     runtime (
             'org.postgresql:postgresql:9.4.1207'
@@ -144,13 +143,24 @@ generateJooqCode.dependsOn = [processResources, processTestResources]
 
 compileJava.dependsOn generateJooqCode
 
+check.dependsOn integrationTest
+integrationTest.mustRunAfter test
+
+// Always run integration tests
+project.integrationTest {
+    outputs.upToDateWhen { false }
+}
+
+// Ensure each type of test gets a separate directory
+tasks.withType(Test) {
+    reports.html.destination = file("${reporting.baseDir}/${name}")
+}
 
 shadowJar {
     mergeServiceFiles()
     exclude 'META-INF/*.DSA'
     exclude 'META-INF/*.RSA'
 }
-
 
 task stage {
     dependsOn build
