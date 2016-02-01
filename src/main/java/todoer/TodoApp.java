@@ -1,17 +1,13 @@
 package todoer;
 
-import org.apache.commons.dbcp2.BasicDataSource;
-import org.flywaydb.core.Flyway;
 import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
-import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import todoer.api.TodoEntry;
+import todoer.db.Database;
 import todoer.repos.AllTodos;
 import todoer.transformers.JsonTransformer;
 
-import javax.sql.DataSource;
 import javax.ws.rs.NotFoundException;
 
 import java.util.Optional;
@@ -27,9 +23,11 @@ class TodoApp {
     private static final Logger LOG = LoggerFactory.getLogger(TodoApp.class);
 
     private static int getPortNumber() {
-        return Optional.ofNullable(System.getenv("PORT"))
+        Integer port = Optional.ofNullable(System.getenv("PORT"))
                 .map(Integer::parseInt)
                 .orElse(DEFAULT_PORT);
+        LOG.info("Port set to " + port);
+        return port;
     }
 
     private static void enableCORS() {
@@ -60,39 +58,6 @@ class TodoApp {
         });
     }
 
-    private static DataSource buildDataSource() {
-        final BasicDataSource ds = new BasicDataSource();
-        ds.setDriverClassName("org.postgresql.Driver");
-
-        String jdbcUrl = System.getenv("JDBC_DATABASE_URL");
-        LOG.info("JDBC_DATABASE_URL is " + jdbcUrl);
-        if (jdbcUrl != null) {
-            ds.setUrl(jdbcUrl);
-            return ds;
-        }
-
-        String devUrl = System.getenv("JDBC_TODO_DEV_URL");
-        LOG.info("JDBC_TODO_DEV_URL is " + devUrl);
-
-        if (devUrl == null) {
-            throw new RuntimeException("No matching environmental variables for JDBC_DATABASE_URL or JDBC_TODO_DEV_URL");
-        } else {
-            ds.setUrl(devUrl);
-            return ds;
-        }
-    }
-
-    private static void runFlywayMigrations() {
-        Flyway flyway = new Flyway();
-        flyway.setDataSource(buildDataSource());
-        flyway.repair();
-        flyway.migrate();
-    }
-
-    private static DSLContext buildDSLContext() {
-        return DSL.using(buildDataSource(), SQLDialect.POSTGRES_9_4);
-    }
-
     private static void populateDbWithFakeData(DSLContext db) {
         db.insertInto(TODO, TODO.ID, TODO.TITLE, TODO.IS_COMPLETE, TODO.ORDERING)
                 .values(1, "Note 1", true, 4)
@@ -100,14 +65,14 @@ class TodoApp {
                 .values(3, "Note 3", true, 100)
                 .onDuplicateKeyIgnore()
                 .execute();
-
     }
 
     public static void main(String[] args) {
 
-        runFlywayMigrations();
+        LOG.info("Running migrations");
+        Database.runFlywayMigrations();
 
-        DSLContext db = buildDSLContext();
+        DSLContext db = Database.buildDSLContext();
         populateDbWithFakeData(db);
 
         AllTodos allTodos = new AllTodos(db);
