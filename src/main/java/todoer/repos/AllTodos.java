@@ -34,4 +34,8 @@ public class AllTodos {
                 .where(TODO.ID.eq(todoRecord.getId()))
                 .fetchOneInto(TodoEntry.class);
     }
+
+    public void deleteAll() {
+        db.truncate(TODO).execute();
+    }
 }

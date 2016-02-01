@@ -2,6 +2,7 @@ package todoer;
 
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
 import org.flywaydb.core.Flyway;
 import org.jooq.DSLContext;
 import todoer.api.TodoEntry;
@@ -27,7 +28,7 @@ public class TodoSteps {
         allTodos = new AllTodos(db);
     }
 
-    @Given("^I insert a todo with title \"(.+)\"")
+    @When("^I insert a todo with title \"(.+)\"")
     public void iInsertATodoWithTitle(String title) {
         TodoEntry todo = TodoEntry.builder().title(title).build();
         storedTodo = allTodos.put(todo);
@@ -42,4 +43,10 @@ public class TodoSteps {
     public void todoHasATitle(String title) {
         assertThat(storedTodo.getTitle(), is(title));
     }
+
+    @When("^I delete the root node")
+    public void iDeleteRoot() {
+        allTodos.deleteAll();
+    }
+
 }

@@ -91,6 +91,11 @@ class TodoApp {
                 },
                 JsonTransformer::toJson);
 
+        delete("/todo", (request, response) -> {
+            allTodos.deleteAll();
+            return "[]";
+        });
+
         exception(NotFoundException.class ,(e, request, response) -> {
             response.status(404);
             response.body("Resource not found");
