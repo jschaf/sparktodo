@@ -12,7 +12,7 @@ public class AllTodos {
 
     private final DSLContext db;
 
-    private static final String URL = "http://example.com/";
+    private static final String URL = "https://whispering-falls-80936.herokuapp.com/";
 
     public AllTodos(DSLContext db) {
         this.db = db;
