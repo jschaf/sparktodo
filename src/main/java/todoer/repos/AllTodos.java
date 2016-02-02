@@ -16,7 +16,6 @@ public class AllTodos {
         this.db = db;
     }
 
-
     public Optional<TodoEntry> getById(int id) {
         return Optional.ofNullable(db.selectFrom(TODO)
                 .where(TODO.ID.eq(id))
@@ -27,7 +26,7 @@ public class AllTodos {
         return db.selectFrom(TODO).fetchInto(TodoEntry.class);
     }
 
-    public TodoEntry put(TodoEntry todo) {
+    public TodoEntry save(TodoEntry todo) {
         TodoRecord todoRecord = db.newRecord(TODO, todo);
         todoRecord.store();
         return db.selectFrom(TODO)

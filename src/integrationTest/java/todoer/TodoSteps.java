@@ -1,6 +1,5 @@
 package todoer;
 
-import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import org.flywaydb.core.Flyway;
@@ -31,7 +30,7 @@ public class TodoSteps {
     @When("^I insert a todo with title \"(.+)\"")
     public void iInsertATodoWithTitle(String title) {
         TodoEntry todo = TodoEntry.builder().title(title).build();
-        storedTodo = allTodos.put(todo);
+        storedTodo = allTodos.save(todo);
     }
 
     @Then("^I have (\\d+) todos?")

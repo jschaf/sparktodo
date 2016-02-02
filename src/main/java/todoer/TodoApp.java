@@ -3,18 +3,16 @@ package todoer;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import todoer.api.TodoEntry;
 import todoer.db.Database;
+import todoer.handlers.TodoHandler;
 import todoer.repos.AllTodos;
 import todoer.transformers.JsonTransformer;
 
 import javax.ws.rs.NotFoundException;
-
 import java.util.Optional;
 
 import static spark.Spark.*;
-import static todoer.transformers.JsonTransformer.json;
-import static todoer.models.tables.Todo.*;
+import static todoer.models.tables.Todo.TODO;
 
 class TodoApp {
 
@@ -30,7 +28,7 @@ class TodoApp {
         return port;
     }
 
-    private static void enableCORS() {
+    private static void enableCrossOriginResourceSharing() {
         options("/*",
                 (request, response) -> {
 
@@ -77,24 +75,18 @@ class TodoApp {
 
         AllTodos allTodos = new AllTodos(db);
 
+        TodoHandler todoHandler = new TodoHandler(allTodos);
+
         port(getPortNumber());
 
-        enableCORS();
+        enableCrossOriginResourceSharing();
 
-        get("/todo", (request, response) -> allTodos.getAll(), json());
         after((request, response) -> response.type("application/json"));
 
-        get("/todo/:id",
-                (request, response) -> {
-                    Optional<TodoEntry> todo = allTodos.getById(Integer.parseInt(request.params(":id")));
-                    return todo.orElseThrow(NotFoundException::new);
-                },
-                JsonTransformer::toJson);
-
-        delete("/todo", (request, response) -> {
-            allTodos.deleteAll();
-            return "[]";
-        });
+        get("/todo", todoHandler.GET_INDEX, JsonTransformer::toJson);
+        get("/todo/:id", todoHandler.GET_DETAIL, JsonTransformer::toJson);
+        post("/todo", todoHandler.POST);
+        delete("/todo", todoHandler.DELETE);
 
         exception(NotFoundException.class ,(e, request, response) -> {
             response.status(404);
