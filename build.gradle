@@ -11,9 +11,10 @@ buildscript {
     }
 
     dependencies {
-        classpath 'org.postgresql:postgresql:9.4.1207'
+        classpath 'org.flywaydb:flyway-gradle-plugin:3.2.1'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.12.0'
         classpath 'org.jooq:jooq-codegen:3.7.2'
+        classpath 'org.postgresql:postgresql:9.4.1207'
     }
 }
 
@@ -22,6 +23,7 @@ plugins {
     id 'idea'
     id 'java'
     id 'jetty'
+    id 'org.flywaydb.flyway' version '3.2.1'
     id 'com.github.johnrengelman.shadow' version '1.2.3'
     id "com.github.ben-manes.versions" version '0.12.0'
     id 'org.unbroken-dome.test-sets' version '1.2.0'
@@ -99,6 +101,20 @@ dependencies {
     )
 }
 
+flyway {
+     url = dbUrl
+}
+
+// https://github.com/flyway/flyway/issues/775
+// Flyway needs to support Java migrations, so it depends on testClasses.
+// That results in a circular dependency for jOOQ because we need migrations
+// to run, then jOOQ code-gen and then compileJava
+project.afterEvaluate {
+    flywayClean.dependsOn -= testClasses
+    flywayMigrate.dependsOn = [processResources, processTestResources]
+}
+
+
 task generateJooqCode {
 //    description = 'Generate Java API for the database.'
     doLast {
@@ -143,6 +159,7 @@ task generateJooqCode {
     }
 }
 
+generateJooqCode.dependsOn flywayMigrate
 generateJooqCode.dependsOn = [processResources, processTestResources]
 
 compileJava.dependsOn generateJooqCode

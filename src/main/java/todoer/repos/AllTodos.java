@@ -32,6 +32,9 @@ public class AllTodos {
         TodoRecord todoRecord = db.newRecord(TODO, todo);
         todoRecord.store();
 
+        todoRecord.setUrl(URL + todoRecord.getId());
+        todoRecord.store();
+
         return db.selectFrom(TODO)
                 .where(TODO.ID.eq(todoRecord.getId()))
                 .fetchOneInto(TodoEntry.class);

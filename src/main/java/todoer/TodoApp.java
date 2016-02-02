@@ -57,7 +57,7 @@ class TodoApp {
     }
 
     private static void populateDbWithFakeData(DSLContext db) {
-        db.insertInto(TODO, TODO.ID, TODO.TITLE, TODO.IS_COMPLETE, TODO.ORDERING)
+        db.insertInto(TODO, TODO.ID, TODO.TITLE, TODO.COMPLETE, TODO.ORDERING)
                 .values(1, "Note 1", true, 4)
                 .values(2, "Note 2", false, 3)
                 .values(3, "Note 3", true, 100)
