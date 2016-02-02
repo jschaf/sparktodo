@@ -56,22 +56,12 @@ class TodoApp {
         });
     }
 
-    private static void populateDbWithFakeData(DSLContext db) {
-        db.insertInto(TODO, TODO.ID, TODO.TITLE, TODO.COMPLETE, TODO.ORDERING)
-                .values(1, "Note 1", true, 4)
-                .values(2, "Note 2", false, 3)
-                .values(3, "Note 3", true, 100)
-                .onDuplicateKeyIgnore()
-                .execute();
-    }
-
     public static void main(String[] args) {
 
         LOG.info("Running migrations");
         Database.runFlywayMigrations();
 
         DSLContext db = Database.buildDSLContext();
-        populateDbWithFakeData(db);
 
         AllTodos allTodos = new AllTodos(db);
 

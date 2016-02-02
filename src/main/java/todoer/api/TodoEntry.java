@@ -17,7 +17,7 @@ public class TodoEntry {
     private final String title;
 
     @Wither
-    private final boolean complete;
+    private final boolean completed;
 
     @Wither
     private final int ordering;
