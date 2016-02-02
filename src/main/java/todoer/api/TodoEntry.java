@@ -17,10 +17,13 @@ public class TodoEntry {
     private final String title;
 
     @Wither
-    private final boolean isComplete;
+    private final boolean complete;
 
     @Wither
     private final int ordering;
+
+    @Wither
+    private final String url;
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class TodoEntryBuilder {

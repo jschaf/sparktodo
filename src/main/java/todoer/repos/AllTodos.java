@@ -12,6 +12,8 @@ public class AllTodos {
 
     private final DSLContext db;
 
+    private static final String URL = "http://example.com/";
+
     public AllTodos(DSLContext db) {
         this.db = db;
     }
@@ -29,6 +31,7 @@ public class AllTodos {
     public TodoEntry save(TodoEntry todo) {
         TodoRecord todoRecord = db.newRecord(TODO, todo);
         todoRecord.store();
+
         return db.selectFrom(TODO)
                 .where(TODO.ID.eq(todoRecord.getId()))
                 .fetchOneInto(TodoEntry.class);
