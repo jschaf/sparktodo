@@ -45,6 +45,7 @@ public final class TodoHandler {
     };
 
     public final Route DELETE = (request, response) -> {
-        return null;
+        TodoHandler.this.allTodos.deleteAll();
+        return "";
     };
 }

@@ -83,10 +83,10 @@ class TodoApp {
 
         after((request, response) -> response.type("application/json"));
 
-        get("/todo", todoHandler.GET_INDEX, JsonTransformer::toJson);
-        get("/todo/:id", todoHandler.GET_DETAIL, JsonTransformer::toJson);
-        post("/todo", todoHandler.POST);
-        delete("/todo", todoHandler.DELETE);
+        get("/", todoHandler.GET_INDEX, JsonTransformer::toJson);
+        get("/:id", todoHandler.GET_DETAIL, JsonTransformer::toJson);
+        post("/", todoHandler.POST, JsonTransformer::toJson);
+        delete("/", todoHandler.DELETE);
 
         exception(NotFoundException.class ,(e, request, response) -> {
             response.status(404);
