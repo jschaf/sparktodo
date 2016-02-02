@@ -159,8 +159,7 @@ task generateJooqCode {
     }
 }
 
-generateJooqCode.dependsOn flywayMigrate
-generateJooqCode.dependsOn = [processResources, processTestResources]
+generateJooqCode.dependsOn = [processResources, processTestResources, flywayMigrate]
 
 compileJava.dependsOn generateJooqCode
 
